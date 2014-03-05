@@ -13,15 +13,20 @@ A colleague and I recently tried to rank the important contributions of statisti
 
 In my experience, confounding isn't at root a statistical topic.  People who have never studied statistics have little difficulty with the idea that the relationship between drowning deaths and ice cream sales is really about the increased popularity of swimming in summer weather. No congressman is convinced to slow campaign fund-raising by the established fact that higher campaign spending is associated with a lower vote outcome for the incumbent; they understand that spending is higher when the contest is tight.  People are surprised to hear that SAT scores are lower in Massachusetts than in Mississippi, Alabama, or Arkansas. When told this, they doubt the numbers or suggest that something else is going on.  (Only top students take the SAT in Mississippi, Alabama, and Arkansas, whereas in Massachusetts the vast majority of students do so.) 
 
-What statistics has contributed is not so much the awareness of confounding, but what to do about it.  That is, how to see the relationship between variables A and B even when C, D, and E are tangled in as well.  Such entanglements are addressed by stratification, by modeling and adjustment, and by random assignment.  There's no need to run away from a confounded situation. Instead, one should take sensible steps to mitigate and compensate for confounding, and have a way to test whether the confounding is too profound to be untangled with the study design and the data at hand.  (To be fair to my collegue, he had in mind ... estimating how strong confounding needs to be for it to be playing a dominating role.)
+What statistics has contributed is not so much the awareness of confounding, but how to measure it and what to do about it: stratify by or adjust for other variables, assign treatments at random.
 
-The skeptic asserts, "You can say anything you want with statistics."  This nihilistic view, so often expressed by the opponents of a claim, has been countered by statistical technique. In many circumstances, responsible statistical statistical claims are reliable, and there are ways to judge whether any given situation is or is not likely to be one of them.
+It seems common sense to teach about dealing with confounding when students are introduced to statistics.  Introductory courses generally express the advisability of randomized controlled studies (RCT), often identifying them as "the gold standard".  The standard curriculum is, unfortunately, silent or dismissive, when it comes to situations where an RCT is not possible or not available.  This is not for lack of interest: The American Statistical Association sponsors a competition, the *[Causality in Statistics Education Award](http://www.amstat.org/education/causalityprize/)*, aimed at encouraging the teaching of basic causal inference in introductory statistics courses.  The question is, "How?"
 
-It seems common sense to teach about dealing with confounding when students are introduced to statistics.  Introductory courses generally express the advisability of randomized controlled studies (RCT), often identifying them as "the gold standard".  The standard curriculum is, unfortunately, silent or simply dismissive, when it comes to situations where an RCT is not possible or not available.  Perhaps this is because the modeling-based techniques for dealing with confounding are considered too mathematically advanced for most students.  On the other hand, there's reason to believe that the difficulty stems from the traditional algebraic approach of mathematics rather than from the topic itself.  An analogy: approaching statistics from a formula- and algebra-based perspective is like speaking Pig Latin.  It's hard because the meaning is obscured by the unfamiliarity of the words. You need two cognitive process to understand Pig Latin: the one normally involved in understanding speach and the one needed to re-arrange the syllables from Pig Latin.
+George Cobb (2007) has described the core of statistical inference: Randomize, Repeat, Reject.  Modern computing these verbs available as basic computer operations.
 
-George Cobb [ref to TISE Ptolomaic] stated that "almost all teachers of statistics who care about doing well by their students and doing well by their subject have recognized that computers are changing the teaching of our subject."  This is not just a matter of computers streamlining otherwise tedious and error-prone calculations.  Computers make available a set of operations that can be used as a new basis for teaching statistics.  Among these are Randomize, Repeat, and Fit.
 
-Randomize and Repeat are already being steadily adopted in the statistics curriculum.  New texts, such as Locke^5 and Tintle, use these operations and are being recognized for teaching effectively about statistical inference. What's missing is Fitting.
+Randomize and Repeat are already being steadily adopted in the statistics curriculum.  New texts, such as Locke^5 and Tintle, use these operations and are being recognized for teaching effectively about statistical inference. 
+
+I propose that we another verb in the basic vocabulary of introductory statistics: **Fit**.  
+
+Of course, statistics software packages offer routines for fitting models to data.  Such procedures are among the most widely used in applied statistics.  Software such as R makes these procedures widely available.
+
+The `mosaic` package in R builds on the basic functionality to facilitate learning about modeling.  The idea is to make basic statistical concepts easily available as 
 
 Doing Fitting arithmetically restricts you pretty much to the mean and sums of squares.  With computers, Fitting becomes an atomic operation.  For instance, in R the `lm()` function does fits. The `mosaic` package for R ties in Fitting with the other operations: Randomize and Repeat.
 
@@ -30,16 +35,40 @@ I think that this is view short-sighted
 Mathematical approach is based on derivation and proof.  Another effective approach is to study the properties of methods, doing methodological experiments and testing things out.  This was impractical when algebra was the only tool. Even the best students found it hard to think creatively; the effort goes into following the derivation rather than creating a test.
 
 
-There's a lot of mathematics in modeling that is quite accessible 
 
-In the historical setting of mathematics, little computation, buil
 
-Understanding a speaker of English is hard when the person is using Pig Latin.  For many people, algebraic notation is essentially Pig Latin.
 
 ASA Judea Pearl causation award. [Turing Prize winner]
 
 
+
+
+## DELETED
+
+### Editorializing
+
 One problem: many (most? almost all?) people don't understand that there's anything to be done about confounding. When people don't understand the ways and limitations of dealing with confounding, the debate about any claim based on data can easily be dismissed.  Describing controlled trials as "the gold standard" helps people to accept the results of some studies.  But the often-used phrases "taking into account," or "after adjusting for ..." or "after controlling for ...",  have no specific power to convince when people don't know what that means.
 
+ how to see the relationship between variables A and B even when C, D, and E are tangled in as well.  Such entanglements are addressed by stratification, by modeling and adjustment, and by random assignment.  There's no need to run away from a confounded situation. Instead, one should take sensible steps to mitigate and compensate for confounding, and have a way to test whether the confounding is too profound to be untangled with the study design and the data at hand.
+ 
+ The skeptic asserts, "You can say anything you want with statistics."  This nihilistic view, so often expressed by the opponents of a claim, has been countered by statistical technique. In many circumstances, responsible statistical statistical claims are reliable, and there are ways to judge whether any given situation is or is not likely to be one of them.
 
+### Ad hominem
+
+George Cobb [ref to TISE Ptolomaic] stated that "almost all teachers of statistics who care about doing well by their students and doing well by their subject have recognized that computers are changing the teaching of our subject."  The change is not just a matter of computers streamlining otherwise tedious and error-prone calculations.  Computers make available a set of operations that can be used as a new basis for teaching statistics.  Among these are Randomize, Repeat, and Fit.
+
+### Cum hoc ergo propter hoc
+
+Before there was "statistical reasoning" there was "logical reasoning", the fallacy corresponding to "correlation is not causation" was named *cum hoc ergo propter hoc*. 
+
+In the days before the mathematical statement of "co-relation" was introduced by Galton, other words were used for the logical fallacy of *cum hoc, ergo propter hoc*: "causation from mere co-existence" (Coleridge, 1848, "[Hints Toward the Formation of a More Comprehensive Theory of Life](http://books.google.com/books?id=AXcNAAAAYAAJ&dq=%22cum+hoc+ergo+propter+hoc%22&source=gbs_navlinks_s)"  
+
+*Cum hoc, ergo procter hoc* coincidence and consequence, Coleridge writes: "For it is not *cum hoc solo, ergo propter hoc*, which would in many cases supply a presumptive proof by induction, but *cum hoc, et plurimis aliss, ergo propter hoc!*", "causation from mere coexistence", "not concomitants, but effect."  "No science has exhibited and exhibits so many flagrant instances of the sophism *cum hoc, ergo propter hoc*, as that of medicine; for, in proportion as the connection of cause and effect is particularly obscure in physic, physicians have only been the bolder in assuming that the recoveries, which followed after their doses, were not concomitants, but effect."
+
+John Stuart Mill, 1879, "[T]he distinction is confounded between empirical laws, which express merely the customary order of the succession of effects, and the laws of causation on which the effects depend. ... The most vulgar form of this fallacy is that which is commonly called *pos hoc, ergo propter hoc*, or *cum hoc, ergo procter hoc*.
+
+London Magazine, v. 7, p. 508, "Here we have the old original fallacy of "*cum hoc, ergo propter hoc*," ... which is every day found in the speeches of the country gentlemen [in Parliament]. Aesops Fly on the Chariot Wheel doubtless argued "*cum hoc propter hoc*," "Seeing that I am on this chariot, which proceeds so gloriously, is it not rational to imagine that I am a cause of its speed?"
+
+Knight's Quarterly Magazine, v. 1, p. 190, 1823
+"This cum hoc, *ergo propter hoc*, is one of the oldest and most extended sophisms that has had its share a part in accumulating the huge mass of human error; and it is one which you must ever bear in memory, and guard against its insinuations, as you would against the approaches of a serpent."
 
