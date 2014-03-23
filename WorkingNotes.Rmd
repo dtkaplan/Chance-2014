@@ -1,7 +1,7 @@
 ---
 title: "Descriptive Statistics"
-author: Daniel T. Kaplan
-date: March 4, 2014
+author: DTK, RJP, NJH
+date: March 22, 2014
 output:
   html_document:
     fig_height: 3
