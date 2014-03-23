@@ -1,0 +1,82 @@
+---
+title: "Starting with Modeling"
+author: Daniel T. Kaplan
+date: March 6, 2014
+output: html_document
+---
+
+
+```{r include=FALSE}
+require(mosaic)
+```
+
+Does this sound familiar? "A parameter is to a population as a statistic is to a sample." [source](http://en.wikipedia.org/wiki/Statistical_parameter#Examples) In introductory statistics, students encounter descriptive statistics such as the proportion, mean, variance, and correlation coefficient.  These descriptions then form the object of inferential statistics, what one can validly say about the population parameter based on sample statistics. 
+
+There's something important missing here: the *purpose* behind the statistical analysis. Knowing why you're doing something is essential to deciding how to do it.  A key word here is "modeling," the process of making choices about how to describe a system.  Or, as Starfield, Smith, and Blelock consisely phrased it 20-years ago, a model is a "representation for a given purpose."  In building a model, you have to decide what features of the system are essential to your purpose and which can be omitted.  Models are always approximations, but the quality of the model depends on the purpose of the approximation.  As George Box famously said, "All models are wrong.  Some models are useful."
+
+The sorts of decision-making that guide modeling are not typically emphasized in introductory statistics where there are few choices to be made and they are usually related simply to the setting: Is the data categorical or quantitative? Is the description a proportion or a mean? Is one group being described, or the difference between two groups, or the differences among more than two groups?
+
+It's understandable that things developed this way. Egon Pearson laid out many of the factors at work in his 1926 review of R.A. Fisher's "Statistical Methods for Research Workers" (*Science Progress*, **20**:733-737 available [here](http://www.economics.soton.ac.uk/staff/aldrich/fisherguide/esp.htm).) 
+
+> Mr. Fisher has undertaken the very difficult task of attempting to put before research workers in biology and agriculture, who are without any special mathematical training, a summary covering a great range of methods and results in the mathematical theory of statistics. The book is chiefly concerned with the best methods of handling small samples [[omit?, and purposely no general attempt is made to supply proofs of the results quoted, but forty-five]] examples are worked out fully in the text illustrating different methods of attacking a variety of problems. After conscientiously working through the examples, the student should feel able to apply the methods to exactly similar problems [[omit?, but it appears a little doubtful whether without a thorough grasp of the underlying principles he could be safely trusted to tackle other problems where the conditions are somewhat altered.]]  
+    [[ (1926) of Statistical Methods for Research Workers (R. A. Fisher), Science Progress, 20, 733-734.]]
+    
+An modern introduction to statistics should take into account the many ways the statistical environment the has changed since 1926.  In the era of "big data," the problems of "handling small samples" are more peripheral.  Statistics is applied to much more diverse and complicated problems, not just experiments in "biology and agriculture" but the interpretation of observational data in the social sciences, commerce, and government.
+
+An experimentalist sets the conditions of the system her data are collected from.  The analyst of observational data, however, needs to account for the conditions **such as they may be** including the variables that are thought to be confounding.  At the start this requires identifying possible confounders, choosing which factors might be important and which not.  In a word: modeling.
+
+How to teach modeling to introductory students?  Computation seems essential and, fortunately, excellent statistical software such as R is easily available to mainstream students. In addition to being free, R supports a notation that's well suited to modeling.  The `mosaic` package builds on this to make modeling more accessible to students.  
+
+**USE the body-shape data from DCF:**
+
+** Or use the Galton data. **
+
+Consider this simple statistical computation in R/mosaic:
+```{r}
+mean( height ~ sex, data=Galton )
+```
+Means are actually an approach to modeling. The modeling choice here is that height is related to sex.  Calculating means constructs a representation of how height relates to sex.  Other representations might be of interest, for example this box-and-whiskers plot that shows variability in heights beyond that accounted for by sex:
+```{r}
+bwplot( height ~ sex, data=Galton )
+```
+
+Even though means and box-and-whisker plots are very different, the R/mosaic puts front and center the common features:
+
+1. What is the dataset?
+2. What variables are to be included in the model and how should they be related?
+3. What representation should be made?
+
+Different representations serve different purposes.  For instance, the concern might be whether there is more variation in female heights or in male heights.  If so, then a representation of spread may be useful:
+```{r}
+sd( height ~ sex, data=Galton)
+IQR( height ~ sex, data=Galton )
+```
+
+There's nothing fundamentally different when more variables are added.
+
+```{r}
+# mean( height ~ sex + diabetes, data=DCF )
+```
+But sometimes a different representation is called for.  The `lm()` representation handles quantitative variables and gives a different view of the sex dependence (deltas rather than absolute levels).
+
+Should there be an interaction term?  This is a modeler's choice.  One strategy in teaching statistical modeling is to let the students go wild with including terms.  This makes it easier to illustrate why a modeler would choose to omit variables.  ILLUSTRATE WITH SAT DATA.
+
+MOVE ON TO BEING ABLE TO COMPUTE on the model
+
+* Displaying differences: makeFun() and plotFun()
+* Confidence intervals (Example: showing sampling variation in the mean)
+* Hypothesis testing
+
+There are some inconsistencies.  Sometimes it's necessary to give a new name to a function to avoid interfering with existing function.  Example: `densityplot()`.  It's easy enough to define a new function, say, plotDensity() that works as expected.  Trade-off between consistency to the notation and fidelity to operations that are widely used outside of mosaic.
+
+Consistent notation for different levels of analysis: the tilde.
+
+Implementation of important statistical operations: randomization and repetition.
+
+Outputs that can 
+
+
+We hope the mosaic package can be as useful for teaching statistics as the many other packages that are so widely used in the display and analysis of data: ggplot, dply, lattice, knitr
+
+
+

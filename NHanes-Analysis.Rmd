@@ -1,0 +1,39 @@
+---
+title: "NHANES analysis"
+author: "DTK"
+date: "March 20, 2014"
+output: html_document
+---
+
+Examples from the NHANES data for the Chance article:
+
+## Loading the Data
+
+```{r}
+load('nhanes.rda')
+```
+
+## Simpson's Paradox
+
+Smoking seems to make no difference to the probability of having died, unless one adjusts for age.
+
+```{r}
+summary(glm( d==1 ~ smoke, data=nhanes, family="binomial"))
+summary(glm( d==1 ~ smoke+sex+age, data=nhanes, family="binomial"))
+```
+
+Better to look at all-cause mortality: perhaps smoking raises your awareness or changes your risk of death from other causes.
+
+```{r}
+summary(glm( d!=0 ~ smoke, data=nhanes, family="binomial"))
+```
+
+Adjusting for age and sex produces a larger relationship *in the other direction*.
+
+
+## Graphs
+
+Make some graphs with inference to show how easy this is, e.g. height versus age for pre-adults.
+
+
+
