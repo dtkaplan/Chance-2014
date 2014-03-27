@@ -8,6 +8,7 @@ output: html_document
 
 ```{r include=FALSE}
 require(mosaic)
+require(DCF) # just temporarily
 ```
 
 Does this sound familiar? "A parameter is to a population as a statistic is to a sample." [source](http://en.wikipedia.org/wiki/Statistical_parameter#Examples) In introductory statistics, students encounter descriptive statistics such as the proportion, mean, variance, and correlation coefficient.  These descriptions then form the object of inferential statistics, what one can validly say about the population parameter based on sample statistics. 
@@ -26,6 +27,175 @@ An modern introduction to statistics should take into account the many ways the 
 An experimentalist sets the conditions of the system her data are collected from.  The analyst of observational data, however, needs to account for the conditions **such as they may be** including the variables that are thought to be confounding.  At the start this requires identifying possible confounders, choosing which factors might be important and which not.  In a word: modeling.
 
 How to teach modeling to introductory students?  Computation seems essential and, fortunately, excellent statistical software such as R is easily available to mainstream students. In addition to being free, R supports a notation that's well suited to modeling.  The `mosaic` package builds on this to make modeling more accessible to students.  
+
+To illustrate, consider a dataset on human body shape, disease and mortality.  These data were assembled from the [National Health and Nutrition Examination Survey](http://www.cdc.gov/nchs/nhanes/nh3data.htm), NHANES-III.  The motivation for such a survey is to understand better the relationship between diet and health so that people can make helpful changes in their diets.  As such, causation diet -> health is central.  As an observational study, NHANES-III is not ideally suited to drawing causal inference.  But experiment is not feasible and data such as these are the best we have to guide important lifestyle and medical decisions.
+
+You may have heard about the link between overweight and type-II diabetes. Originally named "adult-onset diabetes," it is now considered an "epidemic" in children. (See, for instance, this [news report](http://www.washingtonpost.com/politics/fighting-the-growing-type-2-diabetes-epidemic-in-children/2013/01/06/361c3b00-5854-11e2-9fa9-5fbdc9530eb9_story.html).)  
+
+What's the relation between diabetes and overweight?  With almost 30,000 people represented, of whom more than 1500 have diabetes, the NHANES data may provide insight.  The body-mass index (BMI) is a measure of overweight included in the data.   One of the standard descriptions in introductory statistics is to look at differences between the group means
+```{r}
+require(mosaic)
+require(DCF)
+data(nhanes) # from DCF
+# Note in Draft
+# changes to make in the data when bringing it into the mosaic package
+# rename diab as diabetes
+# change the NaN to NA
+# make diabetes categorical with levels "diabetic" and "not"
+nhanes$diab <- ifelse( nhanes$diab==1, "diabetic", 
+                      ifelse( is.nan(nhanes$diab), NA, "not" ) )
+nhanes$sex <- ifelse( nhanes$sex==2, "F", "M")
+for (var in c('d','m','hgt','wgt','smoke'))
+  nhanes[[var]] <- ifelse( is.nan(nhanes[[var]]),NA, nhanes[[var]] )
+nhanes$smoke <- ifelse(nhanes$smoke==1,'smoker','not')
+# end of Note in Draft
+
+mean( bmi ~ diab, data=nhanes, na.rm=TRUE ) # need to kill the na.rm part.
+```
+This notation, used in mosaic, clearly identifies the calculation being performed, the data on which the calculation will be based. The expression `bmi ~ diab` means "break bmi down by diabetes classification," or, "account for bmi by diabetes," or "model bmi by diabetes."  
+
+The same notation can be used for a t-test (use `t.test( )` instead of `mean( )`) which gives a p-value on the difference of means $p < 0.000001$.
+
+A graphical depiction --- another sort of representation --- tells more of the story:
+
+```{r}
+bwplot( bmi ~ diab, data=nhanes )
+```
+Clearly, the diabetics as a group tend to have higher BMI than the non-diabetics.  But there is a lot of overlap.  It is only for very low BMI --- say below 15 --- that there is what might be called "protection" against diabetes.  But a BMI < 16 is classified by the World Health Organization as "severe thinness" [ref](http://apps.who.int/bmi/index.jsp?introPage=intro_3.html) and taken to indicate malnutrion, an eating disorder, or other health problems. 
+
+Another way to approach the relationship between diabetes and BMI is to look at the probability of having diabetes for high and low BMI.  Setting the dividing point at BMI 30, 
+```{r}
+tally( diab ~ bmi>30, data=nhanes, margins=TRUE )
+```
+The notation here, `diab ~ bmi>=30` can be read: account for diabetes by whether or not the BMI is greater than 30.
+
+For people with BMI > 30, diabetes is four times as prevalent as for lower BMI. Here, `tally( )` is calculating conditional probabilities.  The notation makes clear what is the conditioning variable.  Compare the above to this:
+```{r}
+tally( bmi>30 ~ diab, data=nhanes, margins=TRUE )
+```
+(Exercise: Why are the two tallys so different?)
+
+Each of these is a representation of the relationship between diabetes and bmi, but not necessarily the most informative representation.  Here's another such representation:
+```{r}
+# Note in draft: Change this to the new system
+plotPoints( bmi ~ jitter(age,factor=4), data=nhanes, alpha=.1, pch=20,
+            xlab="Age (yrs)", ylab="Body Mass Index",main="NHANES-III")
+plotPoints( bmi ~ jitter(age,factor=3), data=subset(nhanes,diab=='diabetic'), 
+            col='red', pch=20, alpha=.2, add=TRUE)
+```
+
+This graphical model suggests a somewhat different story.  First, you can see that BMI depends on age: Children have BMI less than 20; young  and middle-aged adults have BMI > 20 and heading up toward much higher; in the elderly, BMI trends lower than for middle aged.  A lot of the diabetes for people with BMI < 30 occurs in the elderly.
+
+The graph is informative in some ways, but not in others. The most obvious purpose for such data is risk avoidance: to judge how BMI is related to risk of diabetes while adjusting for age. BMI is potentially able to be changed by diet, etc., but age is not under anyone's control.  The graph portrays only a vague impression of this.
+
+An alternative kind of model can be made to display directly the relationship of interest: risk of diabetes as a function of BMI adjusted for age.  This can be expressed quantitatively as a *function*, a relationship between BMI risk and age.
+
+Here, for instance, is an R statement for fitting a linear relationship.
+```{r}
+mod <- glm( diab=="diabetic" ~ bmi*age, data=nhanes)
+```
+Often, such models are interpreted using the model coefficients.  `mosaic` provides a simple expression for finding the confidence intervals:
+```{r}
+confint(mod)
+```
+You might be surprised to see that the coefficients are negative for `bmi` and `age` --- suggesting that diabetes risk is lowered with higher BMI and age.  Of course, there's also the interaction term in the model.  It's easier to see what the fitted model has to say by plotting it out as a *function*: diabetes risk versus BMI for different ages.
+```{r}
+f <- makeFun(mod)
+plotFun( f(bmi, age=30)~bmi, bmi.lim=range(10,50), xlab="Diabetes Risk", ylab="BMI",
+         main="Linear Model")
+plotFun( f(bmi, age=70)~bmi, add=TRUE, col='red')
+# Put some text in this plot to label the lines ????
+```
+
+Once one has moved to functions as models, it's comparatively easy to elaborate the function adding more components or changing the form of the fitted function.  Here's a logistic-shaped relationship:
+```{r,cache=TRUE}
+mod2 <- glm( diab=='diabetic' ~ poly(age,2)*bmi, data=nhanes,
+            family='binomial')
+f2 <- makeFun(mod2)
+plotFun( f2(bmi, age=30)~bmi, bmi.lim=range(10,50), ylab='Diabetes Risk', xlab='BMI',
+         main='A Logistic Model',ylim=c(0,0.25))
+plotFun( f2(bmi, age=70)~bmi, add=TRUE, col='red')
+```
+Or, risk can be plotted as a function of both age and BMI:
+```{r}
+# Just a simple `plotFun()` will be shown in the paper.
+probLevels <- c(.001,.003,.005,.01,.03,.05,.1,.3,.5)
+plotFun( log(f2(bmi,age=age))~bmi&age,
+         bmi.lim=c(10,50), age.lim=c(0,70),
+         levels=log(probLevels), labels=as.character(probLevels),
+         xlab="BMI",ylab="Age",main='Risk of Diabetes')
+```
+The graph suggests that the risk of diabetes increases with BMI at any age.
+
+You may ask, "Why that model and not some other?  Why not include sex or other variables as a covariate?  Why not split out the young and the elderly from the middle-aged?" Our answer: Go and try it!  Then you'll have to think about how to decide which of two models is better, a question which in part can be addressed through confidence intervals, etc. 
+
+Constructing such models --- fitting a function type to the data --- is easily done.  For students, doing so highlights the creative aspects of statistical reasoning.  It's not just a matter of interpreting a p-value: you can examine many factors and build a model that addresses your actual purpose.
+
+With modeling being easy to do, we're prompted to suggest that even at an introductory level, students should be introduced to covariates and the process of judging whether a covariate contributes to the model in an important way.  Indeed, without such capabilities, it's hard to build a useful causal model --- and causation, even from observational data, is essential to the purposes of most models.
+
+To illustrate, consider what the NHANES data has to say about smoking and mortality.
+```{r}
+tally( d ~ smoke, data=nhanes, format="proportion",margins=TRUE)
+```
+This tally suggests that smokers are somewhat less likely to die from cardiovascular causes.  Indeed, according to this table, smokers are less likely to die from other causes, too.
+
+This might be surprising to you, given what is widely believed (and correctly!) about the dangers of smoking.  Perhaps there isn't enough data?  Here's a confidence interval on the change in probability of dying associated with smoking:
+```{r}
+confint( lm( d!=0 ~ smoke, data=nhanes))
+```
+The confidence interval is all in negative territory. (Using `summary()` rather than `confint()` shows the *two-sided* p-value at $<0.01$.)  
+
+What's going on?  Consider the covariates of sex and age:
+```{r}
+confint( lm(d!=0 ~ smoke + age + sex, data=nhanes) )
+```
+Now smoking is associated with an increase in mortality, as is age and being a male.
+
+This is an instance of Simpson's paradox.  The two models contradict each other.  But the models are not equally plausible: it's silly to leave out age as a risk factor.
+
+If students just have statistics and parameters such as the proportion, they are powerless to see how smoking and mortality are related.
+
+
+IS THIS A NATURAL WAY TO DESCRIBE THE RELATIONSHIP.  I submit that it's hard to interpret a graph like this.  BETTER to quantify the relationship.
+
+The graph doesn't quantify the relationship, but it does guide decision-making in constructing models: age seems important.
+
+```{r}
+mod <- lm( diab=='diabetic' ~ bmi * age, data=nhanes)
+f <- makeFun(mod)
+plotFun( f(bmi, age=30)~bmi, bmi.lim=range(10,50))
+plotFun( f(bmi, age=70)~bmi, add=TRUE, col='red')
+```
+
+Contour plot of diabetes probability versus age and bmi.
+
+
+Do smoking and diabetes.  
+
+Then BMI versus smoking.
+
+Diabetes using age, smoking, BMI.
+
+
+EXERCISE: Break out the children and quantify the relationship between diabetes, bmi, and age
+
+```{r}
+tally( diab  ~ bmi>30 & age<20 & age>60, data=nhanes, margins=TRUE )
+```
+
+
+NOTE IN DRAFT: We don't really want to do the following, since the syntax differs and the plot will be difficult for many readers and it takes up valuable space.
+```{r}
+densityplot( ~ bmi, groups=diab, data=nhanes )
+# maybe write showDensity() wrapper for package that integrates `densityplot()` into the same notation.
+```
+
+
+
+Nir Y. Krakauer, Jesse C. Krakauer, "A New Body Shape Index Predicts Mortality Hazard Independently of Body Mass Index" PloS one, 7 (7) PMID: 22815707, 2012. http://www.plosone.org/article/info:doi/10.1371/journal.pone.0039504
+
+
+
 
 **USE the body-shape data from DCF:**
 
