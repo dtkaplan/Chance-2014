@@ -15,18 +15,18 @@ Does this sound familiar? "A parameter is to a population as a statistic is to a
 
 There's something important missing here: the *purpose* behind the statistical analysis. Knowing why you're doing something is essential to deciding how to do it.  A key word here is "modeling," the process of making choices about how to describe a system.  Or, as Starfield, Smith, and Blelock consisely phrased it 20-years ago, a model is a "representation for a given purpose."  In building a model, you have to decide what features of the system are essential to your purpose and which can be omitted.  Models are always approximations, but the quality of the model depends on the purpose of the approximation.  As George Box famously said, "All models are wrong.  Some models are useful."
 
-The sorts of decision-making that guide modeling are not typically emphasized in introductory statistics where there are few choices to be made and they are usually related simply to the setting: Is the data categorical or quantitative? Is the description a proportion or a mean? Is one group being described, or the difference between two groups, or the differences among more than two groups?
+The sorts of decision-making that guide modeling are not typically emphasized in introductory statistics. In a typical course, there are few choices to be made and they are usually related simply to the setting: Is the data categorical or quantitative? Is the description a proportion or a mean? Is one group being described, or the difference between two groups, or the differences among more than two groups?
 
 It's understandable that things developed this way. Egon Pearson laid out many of the factors at work in his 1926 review of R.A. Fisher's "Statistical Methods for Research Workers" (*Science Progress*, **20**:733-737 available [here](http://www.economics.soton.ac.uk/staff/aldrich/fisherguide/esp.htm).) 
 
-> Mr. Fisher has undertaken the very difficult task of attempting to put before research workers in biology and agriculture, who are without any special mathematical training, a summary covering a great range of methods and results in the mathematical theory of statistics. The book is chiefly concerned with the best methods of handling small samples [[omit?, and purposely no general attempt is made to supply proofs of the results quoted, but forty-five]] examples are worked out fully in the text illustrating different methods of attacking a variety of problems. After conscientiously working through the examples, the student should feel able to apply the methods to exactly similar problems [[omit?, but it appears a little doubtful whether without a thorough grasp of the underlying principles he could be safely trusted to tackle other problems where the conditions are somewhat altered.]]  
-    [[ (1926) of Statistical Methods for Research Workers (R. A. Fisher), Science Progress, 20, 733-734.]]
+> Mr. Fisher has undertaken the very difficult task of attempting to put before research workers ... without any special mathematical training, a summary covering a great range of methods ..... The book is chiefly concerned with the best methods of handling small samples .... After conscientiously working through the examples, the student should feel able to apply the methods to exactly similar problems.... 
+    [[ E. Pearson, (1926) "Review of Statistical Methods for Research Workers (R. A. Fisher)", *Science Progress*, **20**:733-734.]]
     
-An modern introduction to statistics should take into account the many ways the statistical environment the has changed since 1926.  In the era of "big data," the problems of "handling small samples" are more peripheral.  Statistics is applied to much more diverse and complicated problems, not just experiments in "biology and agriculture" but the interpretation of observational data in the social sciences, commerce, and government.
+Today's introduction to statistics should take into account the many ways the statistical environment the has changed since 1926.  In the era of "big data," the problems of "handling small samples" are more peripheral.  Statistics is applied to much more diverse and complicated problems, not just experiments but the interpretation of observational data in the social sciences, medicine, commerce, and government.
 
 An experimentalist sets the conditions of the system her data are collected from.  The analyst of observational data, however, needs to account for the conditions **such as they may be** including the variables that are thought to be confounding.  At the start this requires identifying possible confounders, choosing which factors might be important and which not.  In a word: modeling.
 
-How to teach modeling to introductory students?  Computation seems essential and, fortunately, excellent statistical software such as R is easily available to mainstream students. In addition to being free, R supports a notation that's well suited to modeling.  The `mosaic` package builds on this to make modeling more accessible to students.  
+How to teach modeling to introductory students?  Computation seems essential and, fortunately, excellent statistical software such as R is easily available to students. Beyond being free, R supports a notation that's well suited to modeling.  We developed the `mosaic` package to build on this notation to make modeling accessible, even at an introductory level.   
 
 To illustrate, consider a dataset on human body shape, disease and mortality.  These data were assembled from the [National Health and Nutrition Examination Survey](http://www.cdc.gov/nchs/nhanes/nh3data.htm), NHANES-III.  The motivation for such a survey is to understand better the relationship between diet and health so that people can make helpful changes in their diets.  As such, causation diet -> health is central.  As an observational study, NHANES-III is not ideally suited to drawing causal inference.  But experiment is not feasible and data such as these are the best we have to guide important lifestyle and medical decisions.
 
@@ -35,8 +35,9 @@ You may have heard about the link between overweight and type-II diabetes. Origi
 What's the relation between diabetes and overweight?  With almost 30,000 people represented, of whom more than 1500 have diabetes, the NHANES data may provide insight.  The body-mass index (BMI) is a measure of overweight included in the data.   One of the standard descriptions in introductory statistics is to look at differences between the group means
 ```{r}
 require(mosaic)
-require(DCF)
-data(nhanes) # from DCF
+load('nhanes.rda')
+# require(DCF)
+# data(nhanes) # from DCF
 # Note in Draft
 # changes to make in the data when bringing it into the mosaic package
 # rename diab as diabetes
@@ -45,14 +46,16 @@ data(nhanes) # from DCF
 nhanes$diab <- ifelse( nhanes$diab==1, "diabetic", 
                       ifelse( is.nan(nhanes$diab), NA, "not" ) )
 nhanes$sex <- ifelse( nhanes$sex==2, "F", "M")
+# missing data are encoded as NaN, not NA.  Fix this.
 for (var in c('d','m','hgt','wgt','smoke'))
   nhanes[[var]] <- ifelse( is.nan(nhanes[[var]]),NA, nhanes[[var]] )
 nhanes$smoke <- ifelse(nhanes$smoke==1,'smoker','not')
+nhanes$smoke <- as.factor(nhanes$smoke)
 # end of Note in Draft
 
 mean( bmi ~ diab, data=nhanes, na.rm=TRUE ) # need to kill the na.rm part.
 ```
-This notation, used in mosaic, clearly identifies the calculation being performed, the data on which the calculation will be based. The expression `bmi ~ diab` means "break bmi down by diabetes classification," or, "account for bmi by diabetes," or "model bmi by diabetes."  
+This notation, used in `mosaic`, clearly identifies the calculation being performed, the data on which the calculation will be based. The expression `bmi ~ diab` means "break bmi down by diabetes classification," or, "account for bmi by diabetes," or "model bmi by diabetes."  
 
 The same notation can be used for a t-test (use `t.test( )` instead of `mean( )`) which gives a p-value on the difference of means $p < 0.000001$.
 
@@ -94,20 +97,27 @@ Here, for instance, is an R statement for fitting a linear relationship.
 ```{r}
 mod <- glm( diab=="diabetic" ~ bmi*age, data=nhanes)
 ```
-Often, such models are interpreted using the model coefficients.  `mosaic` provides a simple expression for finding the confidence intervals:
+You can read this as, "account for diabetes by a combination of age and BMI."
+
+Such models are often interpreted using model coefficients as sample statistics.  R and `mosaic` calculating inferential quantities as simple as this: 
 ```{r}
 confint(mod)
 ```
-You might be surprised to see that the coefficients are negative for `bmi` and `age` --- suggesting that diabetes risk is lowered with higher BMI and age.  Of course, there's also the interaction term in the model.  It's easier to see what the fitted model has to say by plotting it out as a *function*: diabetes risk versus BMI for different ages.
+Coefficients, though, can be hard to interpret at face value.  For instance, here the coefficients are negative for `bmi` and `age` --- suggesting that diabetes risk is lowered with higher BMI and age.  
+
+It's easier to see what the fitted model has to say by plotting it as a *function*: diabetes risk versus BMI for different ages. In `mosaic`, you have direct access to the fitted model function itself.
 ```{r}
 f <- makeFun(mod)
-plotFun( f(bmi, age=30)~bmi, bmi.lim=range(10,50), xlab="Diabetes Risk", ylab="BMI",
+# Simplify this statement for the article, 
+# leaving out the labeling stuff
+plotFun( f(bmi, age=30)~bmi, bmi.lim=range(10,50), 
+         xlab="Diabetes Risk", ylab="BMI",
          main="Linear Model")
 plotFun( f(bmi, age=70)~bmi, add=TRUE, col='red')
 # Put some text in this plot to label the lines ????
 ```
 
-Once one has moved to functions as models, it's comparatively easy to elaborate the function adding more components or changing the form of the fitted function.  Here's a logistic-shaped relationship:
+It's comparatively easy to elaborate the function adding more components or changing the form of the fitted function.  For instance
 ```{r,cache=TRUE}
 mod2 <- glm( diab=='diabetic' ~ poly(age,2)*bmi, data=nhanes,
             family='binomial')
@@ -116,7 +126,7 @@ plotFun( f2(bmi, age=30)~bmi, bmi.lim=range(10,50), ylab='Diabetes Risk', xlab='
          main='A Logistic Model',ylim=c(0,0.25))
 plotFun( f2(bmi, age=70)~bmi, add=TRUE, col='red')
 ```
-Or, risk can be plotted as a function of both age and BMI:
+Or, risk can be plotted as a function of *both* age and BMI:
 ```{r}
 # Just a simple `plotFun()` will be shown in the paper.
 probLevels <- c(.001,.003,.005,.01,.03,.05,.1,.3,.5)
@@ -127,17 +137,90 @@ plotFun( log(f2(bmi,age=age))~bmi&age,
 ```
 The graph suggests that the risk of diabetes increases with BMI at any age.
 
-You may ask, "Why that model and not some other?  Why not include sex or other variables as a covariate?  Why not split out the young and the elderly from the middle-aged?" Our answer: Go and try it!  Then you'll have to think about how to decide which of two models is better, a question which in part can be addressed through confidence intervals, etc. 
+You may ask, "Why that model and not some other?  Why not include sex or other variables as a covariate?  Why not split out the young and the elderly from the middle-aged?" 
 
-Constructing such models --- fitting a function type to the data --- is easily done.  For students, doing so highlights the creative aspects of statistical reasoning.  It's not just a matter of interpreting a p-value: you can examine many factors and build a model that addresses your actual purpose.
+Our answer: Go and try it!  Then you'll have to think about how to decide which of two models is better, a question which in part can be addressed through confidence intervals, etc. 
 
-With modeling being easy to do, we're prompted to suggest that even at an introductory level, students should be introduced to covariates and the process of judging whether a covariate contributes to the model in an important way.  Indeed, without such capabilities, it's hard to build a useful causal model --- and causation, even from observational data, is essential to the purposes of most models.
+For students, crafting models highlights the creative aspects of statistical reasoning.  It's not just a matter of interpreting a p-value: you can examine many factors and build a model that addresses your actual purpose.
+
+With software and comprehensible notation standing in for the missing "special mathematical training,"  students can be introduced to covariates and the process of judging whether a covariate contributes to the model in an important way.  Indeed, without such capabilities, all one can do is preach caution about causation. But causation, even from observational data, is often central to the purpose of the statistical analysis.
 
 To illustrate, consider what the NHANES data has to say about smoking and mortality.
 ```{r}
-tally( d ~ smoke, data=nhanes, format="proportion",margins=TRUE)
+tally( d ~ smoke, data=nhanes, 
+       format="proportion", margins=TRUE)
 ```
-This tally suggests that smokers are somewhat less likely to die from cardiovascular causes.  Indeed, according to this table, smokers are less likely to die from other causes, too.
+This tally suggests that smokers are somewhat less likely to die from cardiovascular causes.  Indeed, according to this table, smokers are less likely to die from other causes too!
+
+When considering sample statistics such as these, a student has few options.  Perhaps the difference in proportion will turn out to be insignificant?  (It's not: $p < 0.01$.)  Perhaps observational data are inappropriate for drawing conclusions about causality? (Yes. But an experiment would be, to say the least, challenging to conduct.)
+
+By starting with models, a path opens up to students.  Here's a model corresponding to the simple tally of proportions:
+```{r}
+mod1 <- lm( d!=0 ~ smoke, data=nhanes)
+```
+It can be important to examine confidence intervals and p-values. (Use `confint(mod1)` or `summary(mod1)`. 
+
+But it's also important to examine covariates. The modeling framework makes this accessible.  For instance:
+```{r smokeA,cache=TRUE}
+mod2 <- lm( d!=0 ~ smoke + age, data=nhanes)
+f2 <- makeFun(mod2)
+plotFun( f2(age,smoke='smoker') ~ age, 
+         age.lim=c(20,80), col='red', lwd=3,
+         ylab='Risk of Dying in Follow up period',
+         xlab='Age')
+plotFun( f2(age,smoke='not') ~ age, add=TRUE,
+         lwd=3)
+# IN DRAFT: move the following lines to another chunk
+# draw the confidence bands by resampling
+# In DRAFT: just a few iterations here to speed things up.
+do(5, parallel=FALSE) * {
+  mod2 <- lm( d!=0 ~ smoke + age, 
+              data=resample(nhanes))
+  f2 <- makeFun(mod2)
+  plotFun( f2(age,smoke='smoker') ~ age, add=TRUE,
+           col='red', alpha=.3)
+  plotFun( f2(age,smoke='not') ~ age, add=TRUE,
+           col='blue', alpha=.3)
+  }
+```
+[[Note in Draft: It seems I have to use `parallel=FALSE` in `do()` when there are side effects.  That's kind of nasty.]]
+
+Bringing in statistical inference is straightforward using the resampling approach now coming to the fore in introductory textbooks. (Ref: Tintle book, Rossman book, Locke^5 book)
+
+[[Note in Draft: This is where the bands would show up in the paper.]]
+
+You can easily see that this model is wrong: the model risk is negative for younger people.  But all models are wrong, and this one is a start. Francis Bacon (1562 -1626) said, "Truth comes out of error more readily than out of confusion."  Or, as Brown and Cass put it:
+"Somehow, in emphasizing the logic of data manipulation, teachers of statistics are instilling excessive cautiousness. Students seem to develop extreme risk aversion, apparently fearing that the inevitable flaws in their analysis will be discovered and pounced upon by statistically trained colleagues." (E.N. Brown & R.E. Kass, (2009) "What is Statistics?", *The American Statistician*, **63**(2):105-110, DOI:10.1198/tast.2009.0019, available [here](http://www.stat.cmu.edu/~kass/papers/what.pdf))
+
+The particular flaw here is easily addressed: use a less stiff model form, such as logistic regression:
+
+```{r smokeB,cache=TRUE,echo=1:2}
+mod3 <- glm( d!=0 ~ smoke + age, 
+             family='binomial',data=nhanes)
+f3 <- makeFun(mod3)
+plotFun( f3(age,smoke='smoker') ~ age, 
+         age.lim=c(20,80), col='red', lwd=3,
+         ylab='Risk of Dying in Follow up period',
+         xlab='Age')
+plotFun( f3(age,smoke='not') ~ age, add=TRUE,
+         lwd=3)
+# IN DRAFT: move the following lines to another chunk
+# draw the confidence bands by resampling
+do(3, parallel=FALSE) * {
+  mod3 <- glm( d!=0 ~ smoke + age, family='binomial',
+              data=resample(nhanes))
+  f3 <- makeFun(mod3)
+  plotFun( f3(age,smoke='smoker') ~ age, add=TRUE,
+           col='red', alpha=.3)
+  plotFun( f3(age,smoke='not') ~ age, add=TRUE,
+           col='blue', alpha=.3)
+  }
+```
+
+It's important to be able to recognize the flaws in any analysis, and to be able to address them if needed.  A modeling approach to statistics emphasizes the need to represent the relationships within data, to explore different possibilities, and to focus on the purpose of the work (often, effect size after adjustment for covariates), rather than on p-values. R provides the power.  The `mosaic` package, we hope, provides a helpful simplicity and consistency.
+
+
+## Leavings [Ignore this]
 
 This might be surprising to you, given what is widely believed (and correctly!) about the dangers of smoking.  Perhaps there isn't enough data?  Here's a confidence interval on the change in probability of dying associated with smoking:
 ```{r}
@@ -152,6 +235,9 @@ confint( lm(d!=0 ~ smoke + age + sex, data=nhanes) )
 Now smoking is associated with an increase in mortality, as is age and being a male.
 
 This is an instance of Simpson's paradox.  The two models contradict each other.  But the models are not equally plausible: it's silly to leave out age as a risk factor.
+
+
+Emory Brown et al. Overcome the fear of getting an answer that can be challenged.  Instill the value of being useful.
 
 If students just have statistics and parameters such as the proportion, they are powerless to see how smoking and mortality are related.
 
@@ -248,5 +334,7 @@ Outputs that can
 
 We hope the mosaic package can be as useful for teaching statistics as the many other packages that are so widely used in the display and analysis of data: ggplot, dply, lattice, knitr
 
+## Full Quote
 
+> Mr. Fisher has undertaken the very difficult task of attempting to put before research workers [[omit?in biology and agriculture, who are]] without any special mathematical training, a summary covering a great range of methods [[omit? and results in the mathematical theory of statistics]]. The book is chiefly concerned with the best methods of handling small samples [[omit?, and purposely no general attempt is made to supply proofs of the results quoted, but forty-five]] [[omit? examples are worked out fully in the text illustrating different methods of attacking a variety of problems.]] After conscientiously working through the examples, the student should feel able to apply the methods to exactly similar problems [[omit?, but it appears a little doubtful whether without a thorough grasp of the underlying principles he could be safely trusted to tackle other problems where the conditions are somewhat altered.]]  
 
