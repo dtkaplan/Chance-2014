@@ -2,7 +2,7 @@
 title: "Starting with Modeling"
 author: Daniel T. Kaplan
 date: March 6, 2014
-output: html_document
+output: word_document
 ---
 
 
@@ -10,6 +10,30 @@ output: html_document
 require(mosaic)
 require(DCF) # just temporarily
 ```
+
+Nick's comments:
+
+In terms of this paper for CHANCE, I had several suggestions:
+
+(1) rather than “guide important lifestyle” would “shed light on important lifestyle” be better?
+
+(2) defining the usual categorization of BMI when it is introduced (< 20, 20-25, 25-30, 30+) would be helpful.
+
+(3) Interpreting the 30.94 and 24.51 after the code chunk   mean(bmi ~ diab)  would be helpful
+
+(4) can you please make the rounding coarser (“options(digits=3)” early on?)
+
+(4) Interpretation is also needed for the tally: need to be explicit that only 3.5% of those with BMI <= 30 are diabetic, vs. 12.2% for those with BMI > 30.   Similarly for non diabetics (19% have BMI > 30) vs. diabetics (48% have BMI > 30.
+
+(5) Can you please number the figures, and refer to them in the text?
+
+(6) I’d suggest fitting just the diag ~ poly(age, 2)*bmi model, along with the predicted proportion contour plot.
+
+(7) I’d suggest stopping there, with a note about whether this is what we are teaching in our intro stats courses, along with a note that most students stop after one course.  A paragraph that the concepts are important, and the computation can be facilitated, etc. etc.  I suspect that this is about the length of what Dalene is after.
+
+
+
+==================
 
 Does this sound familiar? "A parameter is to a population as a statistic is to a sample." [source](http://en.wikipedia.org/wiki/Statistical_parameter#Examples) In introductory statistics, students encounter descriptive statistics such as the proportion, mean, variance, and correlation coefficient.  These descriptions then form the object of inferential statistics, what one can validly say about the population parameter based on sample statistics. 
 
