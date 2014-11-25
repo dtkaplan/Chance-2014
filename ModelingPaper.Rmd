@@ -2,13 +2,13 @@
 title: "Modeling for Starters"
 author: Daniel T. Kaplan
 date: March 6, 2014
-output: html_document
+output: word_document
 ---
 
 
 ```{r include=FALSE}
 require(mosaic)
-load("/Users/kaplan/KaplanFiles/Talks/NIMBIOS/data/NHANES.rda")
+load("~/KaplanFiles/Talks/2014-04-06-NIMBIOS/NIMBIOS/data/NHANES.rda")
 require(knitr)
 options( digits=3, width=40, na.rm=TRUE )
 opts_chunk$set( tidy=FALSE, out.width='50%')
