@@ -1,0 +1,118 @@
+---
+title: "modeling-paper-taken-out"
+author: "Daniel Kaplan"
+date: "December 2, 2014"
+output: html_document
+---
+
+The function `f3()` could also be displayed in a more complex way (suitable, say, for students with some calculus):
+
+
+
+```{r fig.width=5,fig.height=5,echo=FALSE}
+# Just a simple `plotFun()` will be shown in the paper.
+probLevels <- c(.001,.003,.005,.01,.03,.05,.1,.3,.5)
+plotFun( f3(bmi,age=age)~bmi&age,
+         bmi.lim=c(10,50), age.lim=c(20,70), filled=FALSE,
+         levels=probLevels, labels=as.character(probLevels),
+         xlab="BMI",ylab="Age",main='',npts=200)
+```
+
+
+
+One thing that's missing here is the role of age, which plays an important role in the relationship between BMI and diabetes.  A scatter plot tells a lot:
+```{r eval=FALSE}
+xyplot( BMI ~ age, group=diabetic, data=NHANES )
+```
+
+```{r echo=FALSE}
+xyplot( BMI ~ age, group=diabetic, data=NHANES,
+        pch=20, alpha=c(.3,.2),cex=c(.5,.1),col=c('red','blue'))
+plotPoints( BMI ~ age, data=subset(NHANES, diabetic=='diabetic'), 
+        pch=20, alpha=.3, cex=.5, add=TRUE, col='red')
+```
+
+You can see that BMI depends on age. Children have BMI less than 20; young  and middle-aged adults have BMI > 20 and heading up toward much higher; in the elderly, BMI trends lower than for middle aged.  A lot of the diabetes for people with BMI < 30 occurs in the elderly.
+
+The most obvious purpose for exploring diabetes and BMI is risk avoidance.  For an individual contemplating lifestyle changes, the relevant question is this: How does BMI affect the risk of diabetes?  
+
+But all of the calculations so far are looking at something different.  They depict how BMI depends on diabetes, rather than on how diabetes depends on BMI.
+
+A simple way to approach the relationship is to look at the probability of having diabetes for high and low BMI.  Setting the dividing point at BMI 30:
+```{r}
+tally( diabetic ~ BMI>30, data=NHANES, margins=TRUE )
+```
+The notation here, `diab ~ BMI>30` can be read: account for diabetes by whether or not the BMI is greater than 30.  This is reversed from the sort of question being addressed by the groupwise means or t-test: how BMI depends on diabetes.
+
+```{r}
+tally( BMI>30 ~ diabetic, data=NHANES, margins=TRUE )
+```
+
+It's well documented that most people, including physicians, do not distinguish well between the two probabilities $p(A|B)$ and $p(B|A)$. [Gigerenzer]  The choice of analysis by the t-test (or the box-and-whisker plot or the differences in group means), though seemingly simple, gets things the wrong way round. 
+
+For addressing the desired purpose, the representation should show the relationship of interest: risk of diabetes as a function of BMI and age.  This can be expressed quantitatively as a *function* with risk of diabetes as the output, not the input.
+
+Constructing a relevant model is straightforward
+```{r}
+mod <- lm( diabetic=='diabetic' ~ BMI*poly(age,2), data=NHANES )
+```
+
+
+You can read this as, "account for whether a person is diabetic by a combination of age and BMI." 
+
+As a computer statement, this is no more difficult than the t-test.  What makes it seemingly difficult is the *interpretation* of the result.  For instance, such models are often interpreted using model coefficients as sample statistics.  R makes the calculation as simple as this: 
+```{r}
+confint(mod)
+```
+Coefficients, though, can be hard to interpret at face value.  For instance, here the coefficients are negative for `bmi` and `age` --- suggesting that diabetes risk is lowered with higher BMI and age.  
+
+It's easier to see what the fitted model has to say by plotting it as a *function*: diabetes risk versus BMI for different ages. In `mosaic`, you have direct access to the fitted model function itself.
+```{r}
+f <- makeFun(mod)
+# Simplify this statement for the article, 
+# leaving out the labeling stuff
+plotFun( f(BMI, age=30) ~ BMI, BMI.lim=range(10,50), 
+         ylab="Diabetes Risk", xlab="BMI",ylim=c(0,.8),
+         main="")
+plotFun( f(BMI, age=50) ~ BMI, add=TRUE, col='green')
+plotFun( f(BMI, age=70) ~ BMI, add=TRUE, col='red')
+# Put some text in this plot to label the lines ????
+```
+
+It's comparatively easy to elaborate on the function by adding more components or changing the form of the fitted function.  For instance, logistic functions are often used in modeling probabilities, and the dependence on age may not be simply linear.
+
+```{r}
+mod2 <- glm( diabetic=='diabetic' ~ BMI*poly(age,2), data=NHANES, 
+             family='binomial' )
+```
+
+Even for such a seemingly complex model, the model functions make interpretation straightforward:
+```{r}
+f2 <- makeFun(mod2)
+# Simplify this statement for the article, 
+# leaving out the labeling stuff
+plotFun( f2(BMI, age=30) ~ BMI, BMI.lim=range(10,50), 
+         ylab="Diabetes Risk", xlab="BMI",  ylim=c(0,.8),
+         main="")
+plotFun( f2(BMI, age=50) ~ BMI, add=TRUE, col='green')
+plotFun( f2(BMI, age=70) ~ BMI, add=TRUE, col='red')
+# Put some text in this plot to label the lines ????
+```
+
+
+Or, risk can be plotted as a function of *both* age and BMI:
+```{r eval=FALSE}
+plotFun( log(f2(bmi,age=age))~bmi&age,
+         bmi.lim=c(10,50), age.lim=c(0,70) )
+```
+
+```{r fig.width=5,fig.height=5,echo=FALSE}
+# Just a simple `plotFun()` will be shown in the paper.
+probLevels <- c(.001,.003,.005,.01,.03,.05,.1,.3,.5)
+plotFun( f2(bmi,age=age)~bmi&age,
+         bmi.lim=c(10,50), age.lim=c(20,70),
+         levels=probLevels, labels=as.character(probLevels),
+         xlab="BMI",ylab="Age",main='',npts=200)
+```
+The graph suggests that the risk of diabetes increases with BMI at any age.
+
